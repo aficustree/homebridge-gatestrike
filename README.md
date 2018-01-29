@@ -5,7 +5,7 @@ This plugin controls an electric strike interfaced with a Raspberry Pi via a GPI
 ## Installation
 
 1. Install homebridge using: `npm install -g homebridge`
-2. Install homebridge-sss-platform using: `npm install -g git+https://github.com/aficustree/homebridge-gatekeeperr`
+2. Install homebridge-sss-platform using: `npm install -g git+https://github.com/aficustree/homebridge-gatestrike`
 3. Update your configuration file. See [sample-config.json](./sample-config.json) in this repository for a sample. 
 
 ## Configuration
