@@ -1,0 +1,28 @@
+{
+  "name": "homebridge-gatestrike",
+  "version": "0.1.0",
+  "description": "a homebridge plugin for an electric gatestrike",
+  "license": "Apache 2.0",
+  "keywords": [
+    "homebridge-plugin",
+    "homebridge",
+    "homekit"
+  ],
+  "engines": {
+    "node": ">=8.0.0",
+    "homebridge": ">=0.2.0"
+  },
+  "author": "Shaun Baker",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/aficustree/homebridge-gatestrike.git"
+  },
+  "dependencies": {
+    "axios": ">=0.17.1"
+  },
+  "readmeFilename": "README.md",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

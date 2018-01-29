@@ -1,0 +1,21 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "CC:22:3D:E3:CE:30",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+    
+    "description": "This is an example configuration file with one fake accessory ",
+
+    "accessories": [
+        {
+            "accessory": "homebridge-gatestrike",
+            "name": "Front Gate",
+            "unlockduration": 10,
+            "unlockurl": "http://YOURIP:YOURPORT/YOURPATH",
+            "listenport": 8900
+        }
+    ]
+
+}
