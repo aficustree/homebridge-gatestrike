@@ -66,6 +66,7 @@ class GatestrikeAccessory {
     }
 
     async setState(state, callback) {
+        this.log('receieved request to set state to '+state+' current state is '+this.state);
         if(state!=this.state) {
             try {
                 this.log('setting state by '+this.unlockurl);
