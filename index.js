@@ -98,6 +98,8 @@ class GatestrikeAccessory {
             }
         }
         else {
+            this.log('state set matches current');
+            this.lockService.setCharacteristic(Characteristic.LockCurrentState, this.state);
             callback(null,this.state);
         }
     }
