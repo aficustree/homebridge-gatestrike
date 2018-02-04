@@ -1,6 +1,12 @@
 var Service, Characteristic;
 var axios = require('axios');
 
+// The value property of LockCurrentState must be one of the following:
+// Characteristic.LockCurrentState.UNSECURED = 0;
+// Characteristic.LockCurrentState.SECURED = 1;
+// Characteristic.LockCurrentState.JAMMED = 2;
+// Characteristic.LockCurrentState.UNKNOWN = 3;
+
 module.exports = function(homebridge){
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
@@ -80,7 +86,7 @@ class GatestrikeAccessory {
                         this.state=Characteristic.LockCurrentState.SECURED;
                         this.lockService.setCharacteristic(Characteristic.LockCurrentState, this.state);
                     },1000*this.unlockduration); //will return to locked status after duration expires
-                    callback(null,response.data,this.state);
+                    callback(null,this.state);
                 }
                 else
                     throw(response.statusCode);
@@ -88,8 +94,11 @@ class GatestrikeAccessory {
             catch (err) {
                 this.log('error communicating with lock '+err);
                 this.state=Characteristic.LockCurrentState.UNKNOWN;
-                callback(err);
+                callback(err,this.state);
             }
+        }
+        else {
+            callback(null,this.state);
         }
     }
 
