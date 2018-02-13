@@ -80,11 +80,11 @@ class GatestrikeAccessory {
                 this.log(response.data);
                 if(response.status == 200 || response.status == 204) {
                     this.state=Characteristic.LockCurrentState.UNSECURED;
-                    this.lockService.setCharacteristic(Characteristic.LockCurrentState, this.state);
+                    this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
                     setTimeout(()=>{
                         this.log('timeout expired, relocking');
                         this.state=Characteristic.LockCurrentState.SECURED;
-                        this.lockService.setCharacteristic(Characteristic.LockCurrentState, this.state);
+                        this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
                     },1000*this.unlockduration); //will return to locked status after duration expires
                     callback(null,this.state);
                 }
@@ -99,7 +99,7 @@ class GatestrikeAccessory {
         }
         else {
             this.log('state set matches current');
-            this.lockService.setCharacteristic(Characteristic.LockCurrentState, this.state);
+            this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
             callback(null,this.state);
         }
     }
