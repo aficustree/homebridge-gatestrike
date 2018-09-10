@@ -76,6 +76,7 @@ class GatestrikeAccessory {
         if(state!=this.state) {
             try {
                 this.log('setting state by '+this.unlockurl);
+                this.lockService.updateCharacteristic(Characteristic.LockTargetState, this.state);
                 var response = await axios.get(this.unlockurl,this.axiosHeaderConfig);
                 this.log(response.data);
                 if(response.status == 200 || response.status == 204) {
@@ -85,6 +86,7 @@ class GatestrikeAccessory {
                         this.log('timeout expired, relocking');
                         this.state=Characteristic.LockCurrentState.SECURED;
                         this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
+                        this.lockService.updateCharacteristic(Characteristic.LockTargetState, this.state);
                     },1000*this.unlockduration); //will return to locked status after duration expires
                     callback(null,this.state);
                 }
@@ -100,6 +102,7 @@ class GatestrikeAccessory {
         else {
             this.log('state set matches current');
             this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
+            this.lockService.updateCharacteristic(Characteristic.LockTargetState, this.state);
             callback(null,this.state);
         }
     }
