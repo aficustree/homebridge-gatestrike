@@ -10,10 +10,11 @@
 
     "accessories": [
         {
-            "accessory": "homebridge-gatestrike",
-            "name": "Front Gate",
-            "unlockduration": 10,
-            "unlockurl": "http://YOURIP:YOURPORT/YOURPATH",
+            "accessory": "homebridge-switches6",
+            "name": "Fireplace",
+            "onURL": "http://YOURIP:YOURPORT/on",
+            "offURL":"http://YOURIP:YOURPORT/off",
+            "statusURL":"http://YOURIP:YOURPORT/status",
             "listenport": 8900
         }
     ]

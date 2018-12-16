@@ -1,42 +1,63 @@
 var Service, Characteristic;
 var axios = require('axios');
 
-// The value property of LockCurrentState must be one of the following:
-// Characteristic.LockCurrentState.UNSECURED = 0;
-// Characteristic.LockCurrentState.SECURED = 1;
-// Characteristic.LockCurrentState.JAMMED = 2;
-// Characteristic.LockCurrentState.UNKNOWN = 3;
+/**
+ * Service "Switch"
+ 
+
+Service.Switch = function(displayName, subtype) {
+    Service.call(this, displayName, '00000049-0000-1000-8000-0026BB765291', subtype);
+  
+    // Required Characteristics
+    this.addCharacteristic(Characteristic.On);
+  
+    // Optional Characteristics
+    this.addOptionalCharacteristic(Characteristic.Name);
+  };
+
+*/
+
+/**
+ * Characteristic "On"
+
+Characteristic.On = function() {
+    Characteristic.call(this, 'On', '00000025-0000-1000-8000-0026BB765291');
+    this.setProps({
+      format: Characteristic.Formats.BOOL,
+      perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+    });
+    this.value = this.getDefaultValue();
+  };
+  
+*/
 
 module.exports = function(homebridge){
     Service = homebridge.hap.Service;
     Characteristic = homebridge.hap.Characteristic;
-    homebridge.registerAccessory('homebridge-gatestrike', 'gatestrike', GatestrikeAccessory);
+    homebridge.registerAccessory('homebridge-switches6', 'homebridge-switches6', SwitchAccessory);
 };
 
-class GatestrikeAccessory {
+class SwitchAccessory {
     constructor(log, config) {
         this.log = log;
         this.name = config['name'];
-        this.unlockurl = config['unlockurl'];
-        this.unlockduration = config['unlockduration'];
+        this.onURL = config['onURL'];
+        this.offURL = config['offURL'];
+        this.statusURL = config['statusURL'];
         this.port = config['listenport'];
-        
-        this.state = Characteristic.LockCurrentState.SECURED; //default is secured on an electric strike
 
         this.axiosHeaderConfig = {headers:{
             'Content-Type':'application/json',
             'Accept':'application/json'
         }};
 
-        this.lockService = new Service.LockMechanism(this.name);
-        this.lockService
-            .getCharacteristic(Characteristic.LockCurrentState)
-            .on('get', (callback)=>this.getState(callback));
+        this.state = this.getState(null);
 
-        this.lockService
-            .getCharacteristic(Characteristic.LockTargetState)
+        this.switchService = new Service.Switch(this.name);
+        this.switchService
+            .getCharacteristic(Characteristic.On)
             .on('get', (callback)=>this.getState(callback))
-            .on('set', (state, callback)=>this.setState(state, callback));
+            .on('set', (callback, state)=>this.setState(callback, state));
 
         try {
             this.listener = require('http').createServer((req, res)=>this.httpListener(req, res));
@@ -63,31 +84,39 @@ class GatestrikeAccessory {
         }	
         res.writeHead(200, {'Content-Type': 'text/plain'});
         res.end();
-        this.log('pushing that an unlock event was received');
-        this.setState(Characteristic.LockCurrentState.UNSECURED,null);
+        // TODO: Get state, compare to homekit state, push changes
     }
 
-    getState(callback) {
-        callback(null, this.state);
+    async getState(callback) {
+        this.log('received request to get state, current known state: '+this.state);
+        try {
+            var response = await axios.get(this.statusURL,this.axiosHeaderConfig);
+            if((response.status == 200 || response.status == 204) && (typeof response.data == typeof true)) {
+                this.log('received state of '+response.data);
+                this.state=response.data;
+            }
+            else
+                throw(response.statusCode);
+            callback(null, this.state);
+        }
+        catch (err) {
+            this.log('error communicating with lock '+err);
+            this.state=false;
+            callback(err,this.state);
+        }
     }
 
     async setState(state, callback) {
         this.log('receieved request to set state to '+state+' current state is '+this.state);
         if(state!=this.state) {
             try {
-                this.log('setting state by '+this.unlockurl);
-                this.lockService.updateCharacteristic(Characteristic.LockTargetState, this.state);
-                var response = await axios.get(this.unlockurl,this.axiosHeaderConfig);
-                this.log(response.data);
+                var url;
+                state ? url=this.onURL : url=this.offURL;
+                this.log('setting state by '+url);
+                var response = await axios.get(url,this.axiosHeaderConfig);
                 if(response.status == 200 || response.status == 204) {
-                    this.state=Characteristic.LockCurrentState.UNSECURED;
-                    this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
-                    setTimeout(()=>{
-                        this.log('timeout expired, relocking');
-                        this.state=Characteristic.LockCurrentState.SECURED;
-                        this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
-                        this.lockService.updateCharacteristic(Characteristic.LockTargetState, this.state);
-                    },1000*this.unlockduration); //will return to locked status after duration expires
+                    this.state=state;
+                    this.switchService.updateCharacteristic(Characteristic.On, this.state);
                     callback(null,this.state);
                 }
                 else
@@ -95,20 +124,19 @@ class GatestrikeAccessory {
             }
             catch (err) {
                 this.log('error communicating with lock '+err);
-                this.state=Characteristic.LockCurrentState.UNKNOWN;
+                this.state=false;
                 callback(err,this.state);
             }
         }
         else {
             this.log('state set matches current');
-            this.lockService.updateCharacteristic(Characteristic.LockCurrentState, this.state);
-            this.lockService.updateCharacteristic(Characteristic.LockTargetState, this.state);
+            this.switchService.updateCharacteristic(Characteristic.On, this.state);
             callback(null,this.state);
         }
     }
 
     getServices() {
-        return [this.lockService];
+        return [this.switchService];
     }
 
 }
